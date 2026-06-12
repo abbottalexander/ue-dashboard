@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UE Team Sales Dashboard — June 2026</title>
+<style>
+:root { color-scheme: dark; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0a0f1e;
+  color: #e2e8f0;
+  padding: 22px;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+.header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:18px; flex-wrap:wrap; gap:10px;
+}
+.header-left h1 { font-size:1.35rem; font-weight:700; color:#f1f5f9; letter-spacing:-.2px; }
+.header-left .sub { font-size:.75rem; color:#64748b; margin-top:3px; }
+.header-pills { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.pill {
+  background:#111827; border:1px solid #1e293b; border-radius:20px;
+  padding:4px 12px; font-size:.74rem; color:#64748b; white-space:nowrap;
+}
+.pill strong { color:#e2e8f0; }
+.pill.days strong { color:#f59e0b; }
+.pill.ptq strong { color:#34d399; }
+
+/* ── Agency bar ── */
+.agency-row {
+  background:#111827; border:1px solid #1e293b; border-radius:10px;
+  padding:13px 18px; margin-bottom:18px;
+  display:grid; grid-template-columns:repeat(4,1fr) 2fr; gap:14px; align-items:center;
+}
+.ag-stat .lbl { font-size:.63rem; color:#475569; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+.ag-stat .val { font-size:1.1rem; font-weight:700; color:#f1f5f9; }
+.ag-stat .val.green { color:#34d399; }
+.ag-stat .val.amber { color:#f59e0b; }
+.ag-progress .lbl-row { display:flex; justify-content:space-between; font-size:.69rem; color:#475569; margin-bottom:5px; }
+.ag-progress .lbl-row span:last-child { font-weight:700; color:#94a3b8; }
+.bar-track { background:#1e293b; border-radius:4px; height:7px; overflow:hidden; position:relative; }
+.bar-track::after { content:''; position:absolute; left:80%; top:0; bottom:0; width:2px; background:rgba(255,255,255,.12); }
+.bar-fill { height:100%; border-radius:4px; transition:width .6s ease; }
+
+/* ── Week tabs ── */
+.week-tabs { display:flex; gap:6px; margin-bottom:14px; }
+.tab-btn {
+  padding:5px 14px; border-radius:6px; font-size:.75rem; font-weight:600;
+  border:1px solid #1e293b; background:#111827; color:#64748b; cursor:pointer;
+  transition: all .15s;
+}
+.tab-btn.active { background:#1e293b; color:#e2e8f0; border-color:#334155; }
+
+/* ── Teams grid ── */
+.teams { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+
+/* ── Team card ── */
+.card {
+  background:#111827; border:1px solid #1e293b; border-radius:10px;
+  overflow:hidden; display:flex; flex-direction:column;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+.card.c1 { border-top:3px solid #3b82f6; }
+.card.c2 { border-top:3px solid #8b5cf6; }
+.card.c3 { border-top:3px solid #10b981; }
+
+.card-head { padding:12px 16px; border-bottom:1px solid #1e293b; }
+.card-head .name { font-size:.95rem; font-weight:700; margin-bottom:3px; }
+.c1 .name { color:#3b82f6; }
+.c2 .name { color:#8b5cf6; }
+.c3 .name { color:#10b981; }
+.card-head .terr { font-size:.67rem; color:#475569; }
+
+.metrics { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#1e293b; border-bottom:1px solid #1e293b; }
+.metric { background:#111827; padding:9px 14px; }
+.metric .ml { font-size:.61rem; color:#475569; text-transform:uppercase; letter-spacing:.4px; margin-bottom:2px; }
+.metric .mv { font-size:.95rem; font-weight:700; color:#f1f5f9; }
+.metric .mv.green { color:#34d399; }
+.metric .mv.amber { color:#f59e0b; }
+.metric .mv.gray  { color:#475569; }
+
+.ptq-sec { padding:10px 14px; border-bottom:1px solid #1e293b; }
+.ptq-sec .row { display:flex; justify-content:space-between; font-size:.69rem; color:#475569; margin-bottom:5px; }
+.ptq-sec .row span:last-child { font-weight:700; color:#94a3b8; }
+.c1 .bar-fill { background:linear-gradient(90deg,#1d4ed8,#3b82f6); }
+.c2 .bar-fill { background:linear-gradient(90deg,#6d28d9,#8b5cf6); }
+.c3 .bar-fill { background:linear-gradient(90deg,#047857,#10b981); }
+.c3.over .bar-fill { background:linear-gradient(90deg,#10b981,#34d399); }
+
+.daily { padding:10px 14px; flex:1; }
+.daily .dtitle { font-size:.61rem; color:#475569; text-transform:uppercase; letter-spacing:.4px; margin-bottom:8px; }
+.bars-wrap { display:flex; align-items:flex-end; gap:4px; height:60px; margin-bottom:4px; }
+.dc { flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; }
+.dc-slot { width:100%; display:flex; align-items:flex-end; justify-content:center; height:44px; position:relative; margin-bottom:3px; }
+.goal-line { position:absolute; left:0; right:0; height:2px; background:#334155; border-radius:1px; }
+.dc-bar { width:70%; border-radius:3px 3px 0 0; min-height:3px; }
+.c1 .dc-bar { background:#3b82f6; }
+.c2 .dc-bar { background:#8b5cf6; }
+.c3 .dc-bar { background:#10b981; }
+.dc-bar.empty { background:#1e293b !important; }
+.dc-bar.above { opacity:1; filter:brightness(1.3); }
+.dc-lbl { font-size:.6rem; color:#475569; }
+.dc-amt { font-size:.55rem; color:#475569; margin-top:1px; }
+.goal-row { display:flex; justify-content:space-between; font-size:.65rem; color:#475569; border-top:1px dashed #1e293b; padding-top:5px; margin-top:3px; }
+
+.card-foot {
+  padding:7px 14px; background:#0d1526; border-top:1px solid #1e293b;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.card-foot .yest { font-size:.66rem; color:#475569; }
+.card-foot .yest span { color:#e2e8f0; font-weight:600; }
+.badge-ptq { font-size:.7rem; font-weight:700; padding:2px 9px; border-radius:20px; }
+.badge-ptq.over   { background:#064e3b; color:#34d399; border:1px solid #10b981; }
+.badge-ptq.good   { background:#064e3b; color:#10b981; border:1px solid #34d399; }
+.badge-ptq.warn   { background:#451a03; color:#f59e0b; border:1px solid #d97706; }
+.badge-ptq.danger { background:#450a0a; color:#f87171; border:1px solid #dc2626; }
+.badge-ptq.none   { background:#1e293b; color:#475569; border:1px solid #334155; }
+
+/* ── Week 1 comparison section ── */
+.w1-section { margin-top:18px; }
+.w1-title { font-size:.72rem; color:#475569; text-transform:uppercase; letter-spacing:.6px; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #1e293b; }
+.w1-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.w1-card {
+  background:#0d1526; border:1px solid #1e293b; border-radius:8px; padding:14px 16px;
+}
+.w1-card .w1-name { font-size:.8rem; font-weight:700; margin-bottom:10px; }
+.c1-w .w1-name { color:#3b82f6; }
+.c2-w .w1-name { color:#8b5cf6; }
+.c3-w .w1-name { color:#10b981; }
+.w1-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
+.w1-stat .sl { font-size:.6rem; color:#475569; text-transform:uppercase; letter-spacing:.4px; margin-bottom:2px; }
+.w1-stat .sv { font-size:.88rem; font-weight:700; color:#f1f5f9; }
+.w1-stat .sv.green { color:#34d399; }
+.w1-stat .sv.amber { color:#f59e0b; }
+.w1-bars { display:flex; align-items:flex-end; gap:3px; height:44px; }
+.w1-dc { flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; }
+.w1-dc-slot { width:100%; display:flex; align-items:flex-end; justify-content:center; height:34px; position:relative; margin-bottom:2px; }
+.w1-goal-line { position:absolute; left:0; right:0; height:1px; background:#334155; }
+.w1-dc-bar { width:68%; border-radius:2px 2px 0 0; min-height:2px; opacity:.8; }
+.c1-w .w1-dc-bar { background:#3b82f6; }
+.c2-w .w1-dc-bar { background:#8b5cf6; }
+.c3-w .w1-dc-bar { background:#10b981; }
+.w1-dc-lbl { font-size:.56rem; color:#475569; }
+
+.stamp { text-align:center; font-size:.63rem; color:#1e293b; margin-top:16px; }
+
+@media (max-width:820px) {
+  .teams, .w1-grid { grid-template-columns:1fr; }
+  .agency-row { grid-template-columns:1fr 1fr; }
+  .ag-progress { grid-column:1/-1; }
+}
+</style>
+</head>
+<body>
+
+<script>
+// ═══════════════════════════════════════
+// DATA — refreshed automatically each weekday at 7am
+// Last updated: 2026-06-10
+// ═══════════════════════════════════════
+const DATA = {
+  updatedAt: "2026-06-10",
+  weekLabel: "Week 2",
+  agencyWeekGoal: 462590,
+  agencyWeekSales: 181175,
+  agencyTeamPct: 40,
+  teams: [
+    {
+      name: "Put It In My Cuff",
+      territories: "Northeast · North · South Bend · Southeast · Fort Wayne",
+      dailyGoal: 42754,
+      weekGoal: 213768,
+      yesterdaySales: 41102,
+      ptq: 44.00,
+      days: [52663, 41402, 0, 0, 0],
+      weekTotal: 94065,
+      need: 119703
+    },
+    {
+      name: "Reinhold My Beer",
+      territories: "Evansville · Owensboro · Northwest · Community · East",
+      dailyGoal: 33326,
+      weekGoal: 166629,
+      yesterdaySales: 20174,
+      ptq: 35.17,
+      days: [38436, 20174, 0, 0, 0],
+      weekTotal: 58610,
+      need: 108019
+    },
+    {
+      name: "Knotty By Nature",
+      territories: "West · North Central · Southwest · Madisonville · Carmel",
+      dailyGoal: 16439,
+      weekGoal: 82193,
+      yesterdaySales: 13377,
+      ptq: 34.67,
+      days: [15163, 13337, 0, 0, 0],
+      weekTotal: 28500,
+      need: 53693
+    }
+  ],
+  week1: [
+    {
+      name: "Put It In My Cuff",
+      total: 193240,
+      goal: 210536,
+      ptq: 91.78,
+      days: [34277, 45177, 39431, 43908, 30447]
+    },
+    {
+      name: "Reinhold My Beer",
+      total: 136463,
+      goal: 164110,
+      ptq: 83.15,
+      days: [26156, 16524, 33524, 41951, 18308]
+    },
+    {
+      name: "Knotty By Nature",
+      total: 104699,
+      goal: 82514,
+      ptq: 126.89,
+      days: [15316, 12107, 18295, 20539, 38442]
+    }
+  ]
+};
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+function fmt(n) {
+  if (n === 0) return '$0';
+  if (!n || isNaN(n)) return '—';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function pct(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return (+n).toFixed(2) + '%';
+}
+function sellingDays() {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const last = new Date(y, m+1, 0).getDate();
+  let c = 0;
+  for (let d = now.getDate(); d <= last; d++) {
+    const dow = new Date(y, m, d).getDay();
+    if (dow !== 0 && dow !== 6) c++;
+  }
+  return c;
+}
+function ptqClass(v) {
+  if (!v || v === 0) return 'none';
+  if (v >= 100) return 'over';
+  if (v >= 80)  return 'good';
+  if (v >= 60)  return 'warn';
+  return 'danger';
+}
+
+function renderBars(days, dailyGoal, colorClass) {
+  const max = Math.max(...days, dailyGoal || 1, 1);
+  const MAX_H = 44;
+  const goalH = Math.round((dailyGoal / max) * MAX_H);
+  const labels = ['M','T','W','T','F'];
+  return days.map((v, i) => {
+    const h = v > 0 ? Math.max(3, Math.round((v/max)*MAX_H)) : 3;
+    const empty = v === 0;
+    const above = v >= dailyGoal && v > 0;
+    return `<div class="dc">
+      <div class="dc-slot">
+        <div class="goal-line" style="bottom:${goalH}px"></div>
+        <div class="dc-bar${empty?' empty':''}${above?' above':''}" style="height:${h}px"></div>
+      </div>
+      <div class="dc-lbl">${labels[i]}</div>
+      <div class="dc-amt">${empty?'—':fmt(v)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCard(team, idx) {
+  const cc = ['c1','c2','c3'][idx];
+  const isOver = team.weekTotal > 0 && team.weekTotal >= team.weekGoal;
+  const ptqW = Math.min(100, team.ptq||0);
+  const pc = ptqClass(team.ptq);
+  const needAmt = Math.max(0, team.weekGoal - team.weekTotal);
+  const needLabel = isOver ? '✓ Over Goal' : fmt(needAmt);
+  const needCls = isOver ? 'green' : (team.weekTotal > 0 ? 'amber' : 'gray');
+
+  return `<div class="card ${cc}${isOver?' over':''}">
+    <div class="card-head">
+      <div class="name">${team.name}</div>
+      <div class="terr">${team.territories}</div>
+    </div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="ml">Week Total</div>
+        <div class="mv ${isOver?'green':(team.weekTotal>0?'':'gray')}">${fmt(team.weekTotal)}</div>
+      </div>
+      <div class="metric">
+        <div class="ml">Week Goal</div>
+        <div class="mv">${fmt(team.weekGoal)}</div>
+      </div>
+      <div class="metric">
+        <div class="ml">${isOver?'Status':'Still Need'}</div>
+        <div class="mv ${needCls}">${needLabel}</div>
+      </div>
+      <div class="metric">
+        <div class="ml">Daily Goal</div>
+        <div class="mv">${fmt(team.dailyGoal)}</div>
+      </div>
+    </div>
+    <div class="ptq-sec">
+      <div class="row"><span>PTQ Progress</span><span>${pct(team.ptq)}${(team.ptq||0)>=100?' 🔥':''}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${ptqW}%"></div></div>
+    </div>
+    <div class="daily">
+      <div class="dtitle">Daily Sales — ${DATA.weekLabel}</div>
+      <div class="bars-wrap">${renderBars(team.days, team.dailyGoal, cc)}</div>
+      <div class="goal-row">
+        <span>Daily Goal: ${fmt(team.dailyGoal)}</span>
+        <span>Total: ${fmt(team.weekTotal)}</span>
+      </div>
+    </div>
+    <div class="card-foot">
+      <div class="yest">Yesterday: <span>${fmt(team.yesterdaySales)}</span></div>
+      <div class="badge-ptq ${pc}">${pct(team.ptq)} PTQ${(team.ptq||0)>=100?' 🏆':''}</div>
+    </div>
+  </div>`;
+}
+
+function renderW1Card(w, idx) {
+  const cc = ['c1-w','c2-w','c3-w'][idx];
+  const isOver = w.total >= w.goal;
+  const max = Math.max(...w.days, 1);
+  const MAX_H = 34;
+  const goalH = Math.round((w.goal/5/max)*MAX_H);
+  const labels = ['M','T','W','T','F'];
+  const bars = w.days.map((v,i) => {
+    const h = Math.max(2, Math.round((v/max)*MAX_H));
+    const above = v >= w.goal/5;
+    return `<div class="w1-dc">
+      <div class="w1-dc-slot">
+        <div class="w1-goal-line" style="bottom:${goalH}px"></div>
+        <div class="w1-dc-bar${above?' above':''}" style="height:${h}px"></div>
+      </div>
+      <div class="w1-dc-lbl">${labels[i]}</div>
+    </div>`;
+  }).join('');
+  return `<div class="w1-card ${cc}">
+    <div class="w1-name">${w.name}</div>
+    <div class="w1-stats">
+      <div class="w1-stat"><div class="sl">Total</div><div class="sv ${isOver?'green':''}">${fmt(w.total)}</div></div>
+      <div class="w1-stat"><div class="sl">Goal</div><div class="sv">${fmt(w.goal)}</div></div>
+      <div class="w1-stat"><div class="sl">PTQ</div><div class="sv ${isOver?'green':'amber'}">${pct(w.ptq)}${isOver?' 🏆':''}</div></div>
+    </div>
+    <div class="w1-bars">${bars}</div>
+  </div>`;
+}
+
+function render() {
+  const agGoal  = DATA.agencyWeekGoal;
+  const agSales = DATA.agencyWeekSales;
+  const agPtq   = agGoal > 0 ? (agSales/agGoal*100) : 0;
+  const sdays   = sellingDays();
+
+  document.body.innerHTML = `
+    <div class="header">
+      <div class="header-left">
+        <h1>June 2026 — Team Sales Dashboard</h1>
+        <div class="sub">${DATA.weekLabel} · Refreshed ${DATA.updatedAt}</div>
+      </div>
+      <div class="header-pills">
+        <div class="pill days">Selling Days Left <strong>${sdays}</strong></div>
+        <div class="pill">Weekly Goal <strong>${fmt(agGoal)}</strong></div>
+        <div class="pill ptq">Agency PTQ <strong>${pct(agPtq)}</strong></div>
+      </div>
+    </div>
+
+    <div class="agency-row">
+      <div class="ag-stat"><div class="lbl">Week Goal</div><div class="val">${fmt(agGoal)}</div></div>
+      <div class="ag-stat"><div class="lbl">Week Sales</div><div class="val ${agSales>0?'green':'amber'}">${fmt(agSales)}</div></div>
+      <div class="ag-stat"><div class="lbl">Still Need</div><div class="val amber">${fmt(Math.max(0,agGoal-agSales))}</div></div>
+      <div class="ag-stat"><div class="lbl">Week Pace</div><div class="val">${DATA.agencyTeamPct}%</div></div>
+      <div class="ag-progress">
+        <div class="lbl-row"><span>Agency Week Progress</span><span>${pct(agPtq)} of goal</span></div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${Math.min(100,agPtq)}%;background:linear-gradient(90deg,#1d4ed8,#10b981)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="teams">${DATA.teams.map((t,i)=>renderCard(t,i)).join('')}</div>
+
+    <div class="w1-section">
+      <div class="w1-title">Week 1 Final Results</div>
+      <div class="w1-grid">${DATA.week1.map((w,i)=>renderW1Card(w,i)).join('')}</div>
+    </div>
+
+    <div class="stamp">Refreshed automatically weekdays at 7:00 AM · Last update ${DATA.updatedAt}</div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
